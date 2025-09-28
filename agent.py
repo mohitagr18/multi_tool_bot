@@ -56,7 +56,8 @@ def get_weather(city: str) -> dict:
 
 root_agent = Agent(
     name="multi_tool_bot",
+    model='gemini-2.0-flash',
     description="A multi-tool bot that can use multiple tools to perform tasks",
-    instructions="You are a helpful assistant that can use multiple tools to answer user queries",
-    tools=[],
+    instruction="You are a helpful assistant that can use multiple tools to answer user queries",
+    tools=[get_current_time, get_weather]
 )
