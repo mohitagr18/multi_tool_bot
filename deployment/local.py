@@ -5,7 +5,11 @@ import vertexai
 from dotenv import load_dotenv
 from vertexai.preview import reasoning_engines
 
-from agent import root_agent
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from multi_tool.agent import root_agent
+
+# from agent import root_agent
 
 
 def main():
@@ -47,7 +51,7 @@ def main():
 
     
 
-    test_message = ("Hello! What is the weather in New York?")
+    test_message = ("Hello! What is the weather in Glendale, CA?")
 
     for event in app.stream_query(
         user_id='test_user',

@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 import vertexai
 from vertexai import agent_engines
 from vertexai.preview import reasoning_engines
-from agent import root_agent
+
+from multi_tool.agent import root_agent
 
 
 def create_remote_agent():
@@ -19,11 +20,15 @@ def create_remote_agent():
 
     remote_app = agent_engines.create(
         agent_engine=app,
+        display_name="test_agent4",
         requirements=[
-            "google-cloud-aiplatform[adk,agent_engines]",
+            "google-adk>=1.7.0,<2.0.0",
+            "google-cloud-aiplatform[adk,agent_engines]>=1.49.0",
+            "pydantic>=2.11.3,<3.0.0",
+            "cloudpickle>=3.1.0,<4.0.0"
         ],
         # Uncomment the line below if your agent code is in a local package
-        # extra_packages=["./multi_tool_bot"],
+        extra_packages=["./multi_tool"]
     )
 
     print(f"✅ Created remote agent. Resource Name:\n{remote_app.resource_name}")
@@ -81,32 +86,36 @@ def main():
         staging_bucket=bucket_name,
     )
 
-    parser = argparse.ArgumentParser(description="Vertex AI Agent Deployment & Interaction CLI")
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    # create_remote_agent()
+    # create_remote_session('5404200805588795392', 'test_user_234')
+    # send_message('5404200805588795392', '6869123577984057344', "What is the weather in New York?", 'test_user_234')
 
-    # Command: create-agent
-    subparsers.add_parser("create-agent", help="Deploy a new agent to Vertex AI.")
+    # parser = argparse.ArgumentParser(description="Vertex AI Agent Deployment & Interaction CLI")
+    # subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # Command: create-session
-    parser_create_session = subparsers.add_parser("create-session", help="Create a new interaction session for a deployed agent.")
-    parser_create_session.add_argument("--resource-id", required=True, help="The unique ID of the deployed agent.")
-    parser_create_session.add_argument("--user-id", default="test_user_123", help="A unique identifier for the end-user.")
+    # # Command: create-agent
+    # subparsers.add_parser("create-agent", help="Deploy a new agent to Vertex AI.")
 
-    # Command: send-message
-    parser_send = subparsers.add_parser("send-message", help="Send a message to an agent session.")
-    parser_send.add_argument("--resource-id", required=True, help="The unique ID of the deployed agent.")
-    parser_send.add_argument("--session-id", required=True, help="The ID of the session to use.")
-    parser_send.add_argument("--message", required=True, help="The message to send.")
-    parser_send.add_argument("--user-id", default="test_user_123", help="A unique identifier for the end-user.")
+    # # Command: create-session
+    # parser_create_session = subparsers.add_parser("create-session", help="Create a new interaction session for a deployed agent.")
+    # parser_create_session.add_argument("--resource-id", required=True, help="The unique ID of the deployed agent.")
+    # parser_create_session.add_argument("--user-id", default="test_user_123", help="A unique identifier for the end-user.")
 
-    args = parser.parse_args()
+    # # Command: send-message
+    # parser_send = subparsers.add_parser("send-message", help="Send a message to an agent session.")
+    # parser_send.add_argument("--resource-id", required=True, help="The unique ID of the deployed agent.")
+    # parser_send.add_argument("--session-id", required=True, help="The ID of the session to use.")
+    # parser_send.add_argument("--message", required=True, help="The message to send.")
+    # parser_send.add_argument("--user-id", default="test_user_123", help="A unique identifier for the end-user.")
 
-    if args.command == "create-agent":
-        create_remote_agent()
-    elif args.command == "create-session":
-        create_remote_session(args.resource_id, args.user_id)
-    elif args.command == "send-message":
-        send_message(args.resource_id, args.session_id, args.message, args.user_id)
+    # args = parser.parse_args()
+
+    # if args.command == "create-agent":
+    #     create_remote_agent()
+    # elif args.command == "create-session":
+    #     create_remote_session(args.resource_id, args.user_id)
+    # elif args.command == "send-message":
+    #     send_message(args.resource_id, args.session_id, args.message, args.user_id)
 
 
 if __name__ == "__main__":
