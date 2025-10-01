@@ -88,35 +88,42 @@ def main():
 
     # create_remote_agent()
     # create_remote_session('5404200805588795392', 'test_user_234')
-    # send_message('5404200805588795392', '6869123577984057344', "What is the weather in New York?", 'test_user_234')
+    # send_message('5404200805588795392', '6869123577984057344', "Hi how are you? What all can you do for me?", 'test_user_234')
 
-    # parser = argparse.ArgumentParser(description="Vertex AI Agent Deployment & Interaction CLI")
-    # subparsers = parser.add_subparsers(dest="command", required=True)
+    parser = argparse.ArgumentParser(description="Vertex AI Agent Deployment & Interaction CLI")
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # # Command: create-agent
-    # subparsers.add_parser("create-agent", help="Deploy a new agent to Vertex AI.")
+    # Command: create-agent
+    subparsers.add_parser("create-agent", help="Deploy a new agent to Vertex AI.")
 
-    # # Command: create-session
-    # parser_create_session = subparsers.add_parser("create-session", help="Create a new interaction session for a deployed agent.")
-    # parser_create_session.add_argument("--resource-id", required=True, help="The unique ID of the deployed agent.")
-    # parser_create_session.add_argument("--user-id", default="test_user_123", help="A unique identifier for the end-user.")
+    # Command: create-session
+    parser_create_session = subparsers.add_parser("create-session", help="Create a new interaction session for a deployed agent.")
+    parser_create_session.add_argument("--resource-id", required=True, help="The unique ID of the deployed agent.")
+    parser_create_session.add_argument("--user-id", default="test_user_123", help="A unique identifier for the end-user.")
 
-    # # Command: send-message
-    # parser_send = subparsers.add_parser("send-message", help="Send a message to an agent session.")
-    # parser_send.add_argument("--resource-id", required=True, help="The unique ID of the deployed agent.")
-    # parser_send.add_argument("--session-id", required=True, help="The ID of the session to use.")
-    # parser_send.add_argument("--message", required=True, help="The message to send.")
-    # parser_send.add_argument("--user-id", default="test_user_123", help="A unique identifier for the end-user.")
+    # Command: send-message
+    parser_send = subparsers.add_parser("send-message", help="Send a message to an agent session.")
+    parser_send.add_argument("--resource-id", required=True, help="The unique ID of the deployed agent.")
+    parser_send.add_argument("--session-id", required=True, help="The ID of the session to use.")
+    parser_send.add_argument("--message", required=True, help="The message to send.")
+    parser_send.add_argument("--user-id", default="test_user_123", help="A unique identifier for the end-user.")
 
-    # args = parser.parse_args()
+    args = parser.parse_args()
 
-    # if args.command == "create-agent":
-    #     create_remote_agent()
-    # elif args.command == "create-session":
-    #     create_remote_session(args.resource_id, args.user_id)
-    # elif args.command == "send-message":
-    #     send_message(args.resource_id, args.session_id, args.message, args.user_id)
+    if args.command == "create-agent":
+        create_remote_agent()
+    elif args.command == "create-session":
+        create_remote_session(args.resource_id, args.user_id)
+    elif args.command == "send-message":
+        send_message(args.resource_id, args.session_id, args.message, args.user_id)
 
 
 if __name__ == "__main__":
     main()
+
+
+# python -m deployment.remote_send-message \
+# --resource-id 5404200805588795392 \
+# --session-id 6869123577984057344 \
+# --user-id test_user_234 \
+# --message "Hello, what can you do?"
