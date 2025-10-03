@@ -1,4 +1,5 @@
 from google.adk.agents import Agent
+import vertexai
 from vertexai.preview import rag
 from google.adk.tools.retrieval.vertex_ai_rag_retrieval import VertexAiRagRetrieval
 import datetime
@@ -59,10 +60,14 @@ def get_weather(city: str) -> dict:
             "error_message": f"Weather information for '{city}' is not available.",
         }
 
+rag_corpus = os.getenv("RAG_CORPUS")
+rag_region = os.getenv("RAG_REGION", "us-east4") 
+project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+vertexai.init(project=project_id, location=rag_region)
 rag_tool = VertexAiRagRetrieval(
     name="rag_retrieval",
     description="Retrieve passages from the Vertex AI RAG corpus for grounded answers.",
-    rag_resources=[rag.RagResource(rag_corpus=os.environ["RAG_CORPUS"])],
+    rag_resources=[rag.RagResource(rag_corpus=rag_corpus)],
     similarity_top_k=5  # small k for precision in tests
 )
 

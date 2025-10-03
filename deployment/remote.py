@@ -79,6 +79,14 @@ def main():
     if not all([project_id, location, bucket_name]):
         print("❌ Missing required environment variables (GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION, GOOGLE_CLOUD_STAGING_BUCKET). Please check your .env file.")
         return
+    
+    print(f"Initializing Vertex AI:")
+    print(f"  Project: {project_id}")
+    print(f"  Location: {location}")
+    print(f"  Staging Bucket: {bucket_name}")
+
+    if os.getenv("RAG_CORPUS"):
+        print(f"  RAG Region: {os.getenv('RAG_REGION', 'us-east4')}")
 
     vertexai.init(
         project=project_id,
