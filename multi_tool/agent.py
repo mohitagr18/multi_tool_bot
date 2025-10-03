@@ -1,6 +1,12 @@
 from google.adk.agents import Agent
+from vertexai.preview import rag
+from google.adk.tools.retrieval.vertex_ai_rag_retrieval import VertexAiRagRetrieval
 import datetime
 from zoneinfo import ZoneInfo
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def get_current_time(city: str) -> dict:
@@ -53,11 +59,17 @@ def get_weather(city: str) -> dict:
             "error_message": f"Weather information for '{city}' is not available.",
         }
 
+rag_tool = VertexAiRagRetrieval(
+    name="rag_retrieval",
+    description="Retrieve passages from the Vertex AI RAG corpus for grounded answers.",
+    rag_resources=[rag.RagResource(rag_corpus=os.environ["RAG_CORPUS"])],
+    similarity_top_k=5  # small k for precision in tests
+)
 
 root_agent = Agent(
     name="multi_tool_bot",
     model='gemini-2.0-flash',
     description="A multi-tool bot that can use multiple tools to perform tasks",
-    instruction="You are a helpful assistant that can use multiple tools to answer user queries",
-    tools=[get_current_time, get_weather]
+    instruction="You are a helpful assistant that can use multiple tools to answer user queries. Cite retrieved sources for RAG answers.",
+    tools=[get_current_time, get_weather, rag_tool]
 )
