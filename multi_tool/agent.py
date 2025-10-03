@@ -60,21 +60,82 @@ def get_weather(city: str) -> dict:
             "error_message": f"Weather information for '{city}' is not available.",
         }
 
-rag_corpus = os.getenv("RAG_CORPUS")
-rag_region = os.getenv("RAG_REGION", "us-east4") 
-project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
-vertexai.init(project=project_id, location=rag_region)
-rag_tool = VertexAiRagRetrieval(
-    name="rag_retrieval",
-    description="Retrieve passages from the Vertex AI RAG corpus for grounded answers.",
-    rag_resources=[rag.RagResource(rag_corpus=rag_corpus)],
-    similarity_top_k=5  # small k for precision in tests
-)
+def rag_retrieval(query: str) -> dict:
+    """Retrieve relevant information from the knowledge base.
+    
+    Args:
+        query: The search query to find relevant documents
+        
+    Returns:
+        dict: Retrieved contexts and sources
+    """
+    rag_corpus = os.getenv("RAG_CORPUS")
+    rag_region = os.getenv("RAG_REGION", "us-east4")
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+    
+    if not rag_corpus:
+        return {
+            "status": "error",
+            "error_message": "RAG corpus not configured"
+        }
+    
+    try:
+        # Initialize Vertex AI for this specific call
+        vertexai.init(project=project_id, location=rag_region)
+        
+        # Use RAG API to retrieve contexts
+        rag_resource = rag.RagResource(rag_corpus=rag_corpus)
+        response = rag.retrieval_query(
+            rag_resources=[rag_resource],
+            text=query,
+            similarity_top_k=5,
+        )
+        
+        contexts = []
+        for context in response.contexts.contexts:
+            contexts.append({
+                "text": context.text,
+                "distance": context.distance if hasattr(context, 'distance') else None
+            })
+        
+        return {
+            "status": "success",
+            "contexts": contexts,
+            "query": query
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error_message": f"RAG retrieval failed: {str(e)}"
+        }
+
 
 root_agent = Agent(
     name="multi_tool_bot",
     model='gemini-2.0-flash',
     description="A multi-tool bot that can use multiple tools to perform tasks",
-    instruction="You are a helpful assistant that can use multiple tools to answer user queries. Cite retrieved sources for RAG answers.",
-    tools=[get_current_time, get_weather, rag_tool]
+    instruction="You are a helpful assistant that can use multiple tools to answer user queries. Use get_current_time for time queries, get_weather for weather queries, and rag_retrieval to search the knowledge base. Cite sources when using RAG.",
+    tools=[get_current_time, get_weather, rag_retrieval]
 )
+
+
+
+
+# rag_corpus = os.getenv("RAG_CORPUS")
+# rag_region = os.getenv("RAG_REGION", "us-east4") 
+# project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+# vertexai.init(project=project_id, location=rag_region)
+# rag_tool = VertexAiRagRetrieval(
+#     name="rag_retrieval",
+#     description="Retrieve passages from the Vertex AI RAG corpus for grounded answers.",
+#     rag_resources=[rag.RagResource(rag_corpus=rag_corpus)],
+#     similarity_top_k=5  # small k for precision in tests
+# )
+
+# root_agent = Agent(
+#     name="multi_tool_bot",
+#     model='gemini-2.0-flash',
+#     description="A multi-tool bot that can use multiple tools to perform tasks",
+#     instruction="You are a helpful assistant that can use multiple tools to answer user queries. Cite retrieved sources for RAG answers.",
+#     tools=[get_current_time, get_weather, rag_tool]
+# )
