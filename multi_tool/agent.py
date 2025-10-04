@@ -60,6 +60,7 @@ def get_weather(city: str) -> dict:
             "error_message": f"Weather information for '{city}' is not available.",
         }
 
+
 def rag_retrieval(query: str) -> dict:
     """Retrieve relevant information from the knowledge base.
     
@@ -70,8 +71,6 @@ def rag_retrieval(query: str) -> dict:
         dict: Retrieved contexts and sources
     """
     rag_corpus = os.getenv("RAG_CORPUS")
-    rag_region = os.getenv("RAG_REGION", "us-east4")
-    project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
     
     if not rag_corpus:
         return {
@@ -80,8 +79,8 @@ def rag_retrieval(query: str) -> dict:
         }
     
     try:
-        # Initialize Vertex AI for this specific call
-        vertexai.init(project=project_id, location=rag_region)
+        # Don't reinitialize vertexai - use existing initialization
+        # vertexai should already be initialized by the reasoning engine
         
         # Use RAG API to retrieve contexts
         rag_resource = rag.RagResource(rag_corpus=rag_corpus)
@@ -104,9 +103,12 @@ def rag_retrieval(query: str) -> dict:
             "query": query
         }
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         return {
             "status": "error",
-            "error_message": f"RAG retrieval failed: {str(e)}"
+            "error_message": f"RAG retrieval failed: {str(e)}",
+            "details": error_details
         }
 
 
@@ -114,28 +116,26 @@ root_agent = Agent(
     name="multi_tool_bot",
     model='gemini-2.0-flash',
     description="A multi-tool bot that can use multiple tools to perform tasks",
-    instruction="You are a helpful assistant that can use multiple tools to answer user queries. Use get_current_time for time queries, get_weather for weather queries, and rag_retrieval to search the knowledge base. Cite sources when using RAG.",
+    instruction="""You are a helpful assistant with access to multiple tools.
+
+        AVAILABLE TOOLS:
+        1. get_current_time(city) - Get current time for a city
+        2. get_weather(city) - Get weather information for a city  
+        3. rag_retrieval(query) - Search the knowledge base for information about documents, articles, projects, or any content in the corpus
+
+        IMPORTANT GUIDELINES:
+        - When asked about articles, documents, papers, projects, or any content that might be in a knowledge base, ALWAYS use the rag_retrieval tool first
+        - When asked to summarize, explain, or provide information about specific content/documents, use rag_retrieval
+        - Use get_current_time for time queries
+        - Use get_weather for weather queries
+        - When using rag_retrieval, cite the sources from the retrieved contexts
+
+        Examples of when to use rag_retrieval:
+        - "Summarize the article about X"
+        - "What does the document say about Y?"
+        - "Tell me about the project Z"
+        - "What's in the knowledge base about A?"
+
+        Always try to use the appropriate tool before saying you cannot help.""",
     tools=[get_current_time, get_weather, rag_retrieval]
 )
-
-
-
-
-# rag_corpus = os.getenv("RAG_CORPUS")
-# rag_region = os.getenv("RAG_REGION", "us-east4") 
-# project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
-# vertexai.init(project=project_id, location=rag_region)
-# rag_tool = VertexAiRagRetrieval(
-#     name="rag_retrieval",
-#     description="Retrieve passages from the Vertex AI RAG corpus for grounded answers.",
-#     rag_resources=[rag.RagResource(rag_corpus=rag_corpus)],
-#     similarity_top_k=5  # small k for precision in tests
-# )
-
-# root_agent = Agent(
-#     name="multi_tool_bot",
-#     model='gemini-2.0-flash',
-#     description="A multi-tool bot that can use multiple tools to perform tasks",
-#     instruction="You are a helpful assistant that can use multiple tools to answer user queries. Cite retrieved sources for RAG answers.",
-#     tools=[get_current_time, get_weather, rag_tool]
-# )

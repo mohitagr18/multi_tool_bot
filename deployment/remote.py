@@ -10,9 +10,30 @@ from vertexai.preview import reasoning_engines
 
 from multi_tool.agent import root_agent
 
+def get_env_vars_for_deployment():
+    """Get environment variables needed by the agent."""
+    env_vars = {}
+    
+    # Add RAG configuration if available
+    if os.getenv("RAG_CORPUS"):
+        env_vars["RAG_CORPUS"] = os.getenv("RAG_CORPUS")
+    if os.getenv("RAG_REGION"):
+        env_vars["RAG_REGION"] = os.getenv("RAG_REGION")    
+    return env_vars
+
 
 def create_remote_agent():
     """Deploys the agent to Vertex AI Agent Engine."""
+    
+    # Get environment variables to pass to remote agent
+    env_vars = get_env_vars_for_deployment()
+    
+    print("📦 Environment variables to deploy:")
+    for key, value in env_vars.items():
+        # Mask sensitive values
+        display_val = value[:50] + "..." if len(value) > 50 else value
+        print(f"   {key}: {display_val}")
+    
     app = reasoning_engines.AdkApp(
         agent=root_agent,
         enable_tracing=True
@@ -20,22 +41,23 @@ def create_remote_agent():
 
     remote_app = agent_engines.create(
         agent_engine=app,
-        display_name="test_agent4",
+        display_name="test_user_v1",
         requirements=[
             "google-adk>=1.7.0,<2.0.0",
             "google-cloud-aiplatform[adk,agent_engines]>=1.49.0",
             "pydantic>=2.11.3,<3.0.0",
-            "cloudpickle>=3.1.0,<4.0.0"
+            "cloudpickle>=3.1.0,<4.0.0",
+            "python-dotenv>=1.0.0"
         ],
-        # Uncomment the line below if your agent code is in a local package
-        extra_packages=["./multi_tool"]
+        extra_packages=["./multi_tool"],
+        # Pass environment variables to the remote agent
+        env_vars=env_vars
     )
 
     print(f"✅ Created remote agent. Resource Name:\n{remote_app.resource_name}")
-    # Extract the shorter resource ID for easier use
     resource_id = remote_app.resource_name.split('/')[-1]
     print(f"\nUse this Resource ID for other commands: {resource_id}")
-
+    return resource_id
 
 def create_remote_session(resource_id: str, user_id: str):
     """Creates a new session to interact with a deployed agent."""
@@ -130,8 +152,25 @@ if __name__ == "__main__":
     main()
 
 
-# python -m deployment.remote_send-message \
-# --resource-id 5404200805588795392 \
-# --session-id 6869123577984057344 \
+# python -m deployment.remote send-message \
+# --resource-id 3576231938085617664 \
+# --session-id 786836359359758336 \
 # --user-id test_user_234 \
 # --message "Hello, what can you do?"
+
+# python -m deployment.remote create-session \
+# --resource-id 6223728394421403648 \
+# --user-id test_user_v1
+
+
+# python -m deployment.remote send-message \
+# --resource-id 6223728394421403648 \
+# --session-id 6192252125297246208 \
+# --user-id test_user_v1 \
+# --message "What tools do you have?"
+
+# python -m deployment.remote send-message \
+# --resource-id 6223728394421403648 \
+# --session-id 6192252125297246208 \
+# --user-id test_user_v1 \
+# --message "Summarize My Hackathon Project’s Near-Death Experience with AI Agents"
