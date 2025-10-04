@@ -41,7 +41,7 @@ def create_remote_agent():
 
     remote_app = agent_engines.create(
         agent_engine=app,
-        display_name="test_user_v1",
+        display_name="test_user_v2",
         requirements=[
             "google-adk>=1.7.0,<2.0.0",
             "google-cloud-aiplatform[adk,agent_engines]>=1.49.0",
@@ -159,18 +159,18 @@ if __name__ == "__main__":
 # --message "Hello, what can you do?"
 
 # python -m deployment.remote create-session \
-# --resource-id 6223728394421403648 \
-# --user-id test_user_v1
+# --resource-id 7163151129193218048 \
+# --user-id test_user_v2
 
 
 # python -m deployment.remote send-message \
-# --resource-id 6223728394421403648 \
-# --session-id 6192252125297246208 \
-# --user-id test_user_v1 \
+# --resource-id 7163151129193218048 \
+# --session-id 3107286380548456448 \
+# --user-id test_user_v2 \
 # --message "What tools do you have?"
 
 # python -m deployment.remote send-message \
-# --resource-id 6223728394421403648 \
-# --session-id 6192252125297246208 \
-# --user-id test_user_v1 \
+# --resource-id 7163151129193218048 \
+# --session-id 3107286380548456448 \
+# --user-id test_user_v2 \
 # --message "Summarize My Hackathon Project’s Near-Death Experience with AI Agents"
